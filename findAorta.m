@@ -13,24 +13,17 @@ y = round(center(2));
 center = [y x];
 radiu = radii(1 , :);
 t = 1;
-while (1)
-    if (t == 5)
-        spoint = [center,t];
-    end
-    [BW,center] = growAorta(CT(: , : ,t),center);
+while (t <= 50)
+    spoint = [center,t];
+    [BW,center] = growAorta(CT(: , : ,t),center,radiu);
+    V(:,:,t) = BW;    
     imshow(BW);
-    pause(0.1);
+    pause(0.3);
     t = t + 1;
-    Vnum = sum(sum(BW));
-    if ((t > 2 && Vnum > lastVnum * 1.5) || t > r)
-        break;
-    end
-    lastVnum = Vnum;
-    V(:,:,t - 1) = BW;    
 end
 BW_aorta = V == 1;
 
-function [OutBw,center] = growAorta(I,lastc)
+function [OutBw,center] = growAorta(I,lastc,radiu)
 I(I < 200) = 0;
 Y = imbinarize(I);
 Y = imfill(Y,'hole');
@@ -41,6 +34,10 @@ OutBw = (Label == cen_label);
 queue = [];
 for i = 1 : p
     for j = 1 : q
+        if (abs(i - lastc(1)) > radiu + 10 || abs(j - lastc(2)) > radiu + 10)
+            OutBw(i,j) = 0;
+            continue;
+        end
         if (OutBw(i,j))
             queue = [queue;[i j]];
         end
@@ -49,32 +46,6 @@ end
 cx = round(mean(queue(: , 1)));
 cy = round(mean(queue(: , 2)));
 center = [cx cy];
-
-%{
-x = round(lastc(1));
-y = round(lastc(2));
-lastc = [x y];
-queue = lastc;
-head = 1;
-tail = 1;
-OutBw = false(size(I));
-while (head <= tail)
-    p0 = queue(head,:);
-    head = head + 1;
-    for p = -1 : 1
-        for q = -1 : 1
-            point = p0 + [p q];
-            x = point(1);
-            y = point(2);
-            if (x > 0 && y > 0 && Y(x,y) == 1 && OutBw(x,y) == false)
-                OutBw(x,y) = true;
-                queue = [queue;[x y]];
-                tail = tail + 1;
-            end
-        end
-    end
-end
-%}
 
 
 

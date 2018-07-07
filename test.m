@@ -12,8 +12,8 @@ load BW_Filter;
 save BW_Filter BW_Label BW_Filter;
 %}
 
-
-folder = 'D:\matlab_data\fang-guo-quan\';
+%{
+folder = 'D:\matlab_data\guo-xiu-zhen\';
 [Gray,infolist] = read(folder);
 slope = infolist(1).RescaleSlope;
 intercept = infolist(1).RescaleIntercept;
@@ -21,5 +21,5 @@ CT = Gray * slope + intercept;
 CT = imresize3(CT,0.5);
 [x,y,z] = size(CT);
 save Volume CT slope intercept infolist;
-
+%}
 [BW_aorta,spoint] = findAorta(CT);
