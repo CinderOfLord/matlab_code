@@ -1,31 +1,66 @@
-function [BW_aorta,spoint] = findAorta(CT)
+function [BW_aorta,label_left,label_right] = findAorta(CT,Label)
 %return if this is an arota true or false
-I = CT(: , : , 1);
+t = 5;
 [m,n,r] = size(CT);
+while (t <= r / 2)
+    I = CT(: , : , t);
+    I(I < 300) = 0;
+    Y = imbinarize(I);
+    Y = imfill(Y,'hole');
+    [centers,radii] = imfindcircles(Y , [15 35]);
+    [row_radii,~] = size(radii);
+    if (row_radii == 0)
+        t = t + 1;
+        continue;
+    end
+    center = centers(1 , :);
+    x = round(center(1));
+    y = round(center(2));
+    center = [y x];
+    radiu = radii(1 , :);
+    break;
+end
+label_left = -1;
+label_right = -1;
 V = zeros(m,n,r);
-I(I < 200) = 0;
-Y = imbinarize(I);
-Y = imfill(Y,'hole');
-[centers,radii] = imfindcircles(Y , [15 35]);
-center = centers(1 , :);
-x = round(center(1));
-y = round(center(2));
-center = [y x];
-radiu = radii(1 , :);
-t = 1;
-while (t <= 50)
-    spoint = [center,t];
+while (t <= r / 2)
     [BW,center] = growAorta(CT(: , : ,t),center,radiu);
-    V(:,:,t) = BW;    
+    V(:,:,t) = BW; 
+    Edge = bwmorph(BW,'remove');
+    [x_list,y_list] = find(Edge);
+    [list_row,~] = size(x_list);
     imshow(BW);
-    pause(0.3);
+    pause(0.1);
+    for lk = 1 : list_row
+        tx = x_list(lk);
+        ty = y_list(lk);
+        label = Label(tx,ty,t);
+        if (label == 0 || sum(sum(sum(Label == label))) < 300)
+            continue;
+        end
+        if (label_left == -1)
+            if (center(2) < ty)
+                label_left = label;
+            end
+            continue;
+        end   
+        if (label_left == label)
+            continue;
+        end
+        label_right = label;
+        break;
+    end
+    if (label_left ~= -1 && label_right ~= -1)
+        break;
+    end
     t = t + 1;
 end
 BW_aorta = V == 1;
 
 function [OutBw,center] = growAorta(I,lastc,radiu)
-I(I < 200) = 0;
+I(I < 300) = 0;
 Y = imbinarize(I);
+%Y = imerode(Y,strel('square',1));
 Y = imfill(Y,'hole');
 Label = bwlabel(Y);
 cen_label = Label(lastc(1),lastc(2));
