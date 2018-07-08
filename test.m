@@ -13,7 +13,8 @@ save BW_Filter BW_Label BW_Filter;
 %}
 
 
-folder = 'D:\matlab_data\zhu-meng-ming\';
+%{
+folder = 'D:\matlab_data\diao-li-qing\';
 [Gray,infolist] = read(folder);
 slope = infolist(1).RescaleSlope;
 intercept = infolist(1).RescaleIntercept;
@@ -21,6 +22,7 @@ CT = Gray * slope + intercept;
 CT = imresize3(CT,0.5);
 [x,y,z] = size(CT);
 save Volume CT slope intercept infolist;
+
 
 load Volume;
 options.BlackWhite = false;
@@ -36,4 +38,6 @@ if (label_left == -1 || label_right == -1)
     return;
 end
 BW = BW_aorta | (BW_Label == label_left) | (BW_Label == label_right);
+%}
 
+ct3wei(BW * 400);

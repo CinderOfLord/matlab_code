@@ -1,4 +1,5 @@
 function ct3wei(D)
+
 Ds = smooth3(D);
 figure
 hiso = patch(isosurface(Ds,5),'FaceColor',[1,0.75,0.65],'EdgeColor','none');
@@ -15,3 +16,4 @@ isonormals(Ds,hiso)
 set(hiso,'SpecularColorReflectance',0,'SpecularExponent',50)
 set(gca,'zdir','reverse')
 lighting gouraud
+

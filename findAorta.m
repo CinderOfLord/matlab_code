@@ -17,6 +17,10 @@ while (t <= r / 2)
     x = round(center(1));
     y = round(center(2));
     center = [y x];
+    imshow(Y');
+    hold on;
+    plot(center(1),center(2),'r*');
+    pause(0.3);
     radiu = radii(1 , :);
     break;
 end
@@ -29,8 +33,10 @@ while (t <= r / 2)
     Edge = bwmorph(BW,'remove');
     [x_list,y_list] = find(Edge);
     [list_row,~] = size(x_list);
-    imshow(BW);
-    pause(0.1);
+    imshow(BW');
+    hold on;
+    plot(center(1),center(2),'r*');
+    pause(0.3);
     for lk = 1 : list_row
         tx = x_list(lk);
         ty = y_list(lk);
@@ -41,6 +47,8 @@ while (t <= r / 2)
         if (label_left == -1)
             if (center(2) < ty)
                 label_left = label;
+                plot(tx,ty,'b*');
+                pause(0.5);
             end
             continue;
         end   
@@ -48,6 +56,8 @@ while (t <= r / 2)
             continue;
         end
         label_right = label;
+        plot(tx,ty,'b*');
+        pause(0.5);
         break;
     end
     if (label_left ~= -1 && label_right ~= -1)
