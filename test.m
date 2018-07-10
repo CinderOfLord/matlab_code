@@ -1,25 +1,24 @@
+for i = 50 : 70
+    subplot(1,3,1),imshow(CT(:,:,i),[400 600]);
+    subplot(1,3,2),imshow(FValue(:,:,i),[0.1 0.3]);   
+    subplot(1,3,3),imshow(BW(:,:,i));
+    pause;
+end
 
-%{
-load Volume;
-load Filter;
-BW_Label = Label_Sort(FValue > 0.1,CT);
-save BW_Filter BW_Label;
-%}
-%{
-load Volume;
-load BW_Filter;
-[BW_Filter,Found] = calc_best_pair(BW_Label,CT);
-save BW_Filter BW_Label BW_Filter;
-%}
+% load Volume;
+% options.BlackWhite = false;
+% options.FrangiScaleRange = [1 2];
+% options.FrangiScaleRatio = 1;
+% [FValue,Scale]=FrangiFilter3D(CT,options);
+% Max = max(max(max(FValue)));
+% FValue = FValue / Max;
+% save Filter FValue;
 
-
-folder = 'D:\matlab_data\fang-guo-quan\';
-[Gray,infolist] = read(folder);
-slope = infolist(1).RescaleSlope;
-intercept = infolist(1).RescaleIntercept;
-CT = Gray * slope + intercept;
-CT = imresize3(CT,0.5);
-[x,y,z] = size(CT);
-save Volume CT slope intercept infolist;
-
-[BW_aorta,spoint] = findAorta(CT);
+% BW_Label = bwlabeln(FValue > 0.25);
+% label_left = BW_Label(266,254,62);
+% label_right = BW_Label(186,198,88);
+% BW = (BW_Label == label_left) | (BW_Label == label_right);
+% MeanL = mean(mean(mean((FValue(BW_Label == label_left)))));
+% MeanLScale = mean (mean(mean((Scale(BW_Label == label_left)))));
+% MeanR = mean(mean(mean((FValue(BW_Label == label_right)))));
+% MeanRScale = mean(mean(mean((Scale(BW_Label == label_right)))));
