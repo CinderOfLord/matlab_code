@@ -1,13 +1,13 @@
 function [BW_aorta,label_left,label_right] = findAorta(CT,Label)
 %return if this is an arota true or false
-t = 5;
+t = 1;
 [m,n,r] = size(CT);
 while (t <= r / 2)
     I = CT(: , : , t);
     I(I < 300) = 0;
     Y = imbinarize(I);
     Y = imfill(Y,'hole');
-    [centers,radii] = imfindcircles(Y , [15 35]);
+    [centers,radii] = imfindcircles(Y , [35 65]);
     [row_radii,~] = size(radii);
     if (row_radii == 0)
         t = t + 1;

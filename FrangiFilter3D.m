@@ -152,14 +152,14 @@ for i = 1:length(sigmas),
     if(i==1)
         Iout=Voxel_data;
         if(nargout>1)
-            whatScale = ones(size(I),class(Iout));
+            whatScale = ones(size(I),class(Iout)) * sigmas(i);
         end
         if(nargout>2)
             Voutx=Vx; Vouty=Vy; Voutz=Vz;
         end
     else
         if(nargout>1)
-            whatScale(Voxel_data>Iout)=i;
+            whatScale(Voxel_data>Iout)=sigmas(i);
         end
         if(nargout>2)
             Voutx(Voxel_data>Iout)=Vx(Voxel_data>Iout);
