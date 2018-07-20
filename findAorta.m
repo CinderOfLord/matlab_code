@@ -1,38 +1,82 @@
-function [BW_aorta,spoint] = findAorta(CT)
+ function [BW_aorta,label_left,label_right] = findAorta(CT,Label)
 %return if this is an arota true or false
-I = CT(: , : , 1);
-[m,n,r] = size(CT);
-V = zeros(m,n,r);
-I(I < 200) = 0;
-Y = imbinarize(I);
-Y = imfill(Y,'hole');
-[centers,radii] = imfindcircles(Y , [15 35]);
-center = centers(1 , :);
-x = round(center(1));
-y = round(center(2));
-center = [y x];
-radiu = radii(1 , :);
 t = 1;
-while (1)
-    if (t == 5)
-        spoint = [center,t];
+[m,n,r] = size(CT);
+while (t <= r / 2)
+    I = CT(: , : , t);
+    Y = I > 250;
+    Y = imfill(Y,'hole');
+    [centers,radii] = imfindcircles(Y , [35 65]);
+    [row_radii,~] = size(radii);
+    if (row_radii == 0)
+        t = t + 1;
+        continue;
     end
-    [BW,center] = growAorta(CT(: , : ,t),center);
-    imshow(BW);
-    pause(0.1);
-    t = t + 1;
-    Vnum = sum(sum(BW));
-    if ((t > 2 && Vnum > lastVnum * 1.5) || t > r)
+    center = centers(1 , :);
+    x = round(center(1));
+    y = round(center(2));
+    center = [y x];
+%     imshow(Y');
+%     hold on;
+%     plot(center(1),center(2),'r*');
+%     pause(0.5);
+    subplot(1,2,1),imshow(CT(:,:,t),[100 400]);
+    subplot(1,2,2),imshow(Y),hold on,plot(center(2),center(1),'r*');
+    pause(0.2);
+    radiu = radii(1 , :);
+    break;
+end
+label_left = -1;
+label_right = -1;
+V = zeros(m,n,r);
+while (t <= r / 2)
+    subplot(1,2,1),imshow(CT(:,:,t),[100 400]);
+    [BW,center] = growAorta(CT(: , : ,t),center,radiu);
+    V(:,:,t) = BW; 
+    Edge = bwmorph(BW,'remove');
+    [x_list,y_list] = find(Edge);
+    [list_row,~] = size(x_list);
+    subplot(1,2,2),imshow(BW),hold on,plot(center(2),center(1),'r*');
+    pause(0.2);
+%     imshow(BW');
+%     hold on;
+%     plot(center(1),center(2),'r*');
+%     pause(0.5);
+    for lk = 1 : list_row
+        tx = x_list(lk);
+        ty = y_list(lk);
+        label = Label(tx,ty,t);
+        if (label == 0 || sum(sum(sum(Label == label))) < 5000)
+            continue;
+        end
+        if (label_left == -1)
+            if (center(2) < ty)
+                label_left = label;
+%                 plot(tx,ty,'b*');
+                plot(ty,tx,'b*');
+                pause(0.2);
+            end
+            continue;
+        end   
+        if (label_left == label)
+            continue;
+        end
+        label_right = label;
+%         plot(tx,ty,'b*');
+        plot(ty,tx,'b*');
+        pause(0.2);
         break;
     end
-    lastVnum = Vnum;
-    V(:,:,t - 1) = BW;    
+    if (label_left ~= -1 && label_right ~= -1)
+        break;
+    end
+    t = t + 1;
 end
 BW_aorta = V == 1;
 
-function [OutBw,center] = growAorta(I,lastc)
-I(I < 200) = 0;
-Y = imbinarize(I);
+function [OutBw,center] = growAorta(I,lastc,radiu)
+Y = I > 150;
+%Y = imerode(Y,strel('square',1));
 Y = imfill(Y,'hole');
 Label = bwlabel(Y);
 cen_label = Label(lastc(1),lastc(2));
@@ -41,6 +85,10 @@ OutBw = (Label == cen_label);
 queue = [];
 for i = 1 : p
     for j = 1 : q
+        if (abs(i - lastc(1)) > radiu + 15 || abs(j - lastc(2)) > radiu + 15)
+            OutBw(i,j) = 0;
+            continue;
+        end
         if (OutBw(i,j))
             queue = [queue;[i j]];
         end
@@ -49,32 +97,6 @@ end
 cx = round(mean(queue(: , 1)));
 cy = round(mean(queue(: , 2)));
 center = [cx cy];
-
-%{
-x = round(lastc(1));
-y = round(lastc(2));
-lastc = [x y];
-queue = lastc;
-head = 1;
-tail = 1;
-OutBw = false(size(I));
-while (head <= tail)
-    p0 = queue(head,:);
-    head = head + 1;
-    for p = -1 : 1
-        for q = -1 : 1
-            point = p0 + [p q];
-            x = point(1);
-            y = point(2);
-            if (x > 0 && y > 0 && Y(x,y) == 1 && OutBw(x,y) == false)
-                OutBw(x,y) = true;
-                queue = [queue;[x y]];
-                tail = tail + 1;
-            end
-        end
-    end
-end
-%}
 
 
 

@@ -61,26 +61,26 @@ defaultoptions = struct('FrangiScaleRange', [1 10], 'FrangiScaleRatio', 2, 'Fran
 
 
 % Process inputs
-if(~exist('options','var')), 
+if(~exist('options','var'))
     options=defaultoptions; 
 else
     tags = fieldnames(defaultoptions);
     for i=1:length(tags)
          if(~isfield(options,tags{i})),  options.(tags{i})=defaultoptions.(tags{i}); end
     end
-    if(length(tags)~=length(fieldnames(options))), 
+    if(length(tags)~=length(fieldnames(options))) 
         warning('FrangiFilter3D:unknownoption','unknown options found');
     end
 end
 
 % Use single or double for calculations
-if(~isa(I,'double')), I=single(I); end
+if(~isa(I,'double')), I=double(I); end
 
 sigmas=options.FrangiScaleRange(1):options.FrangiScaleRatio:options.FrangiScaleRange(2);
 sigmas = sort(sigmas, 'ascend');
 
 % Frangi filter for all sigmas
-for i = 1:length(sigmas),
+for i = 1:length(sigmas)
     % Show progress
     if(options.verbose)
         disp(['Current Frangi Filter Sigma: ' num2str(sigmas(i)) ]);
@@ -117,16 +117,16 @@ for i = 1:length(sigmas),
     Rb=LambdaAbs1./sqrt(LambdaAbs2.*LambdaAbs3);
 
     % Second order structureness. S = sqrt(sum(L^2[i])) met i =< D
-    S = sqrt(LambdaAbs1.^2+LambdaAbs2.^2+LambdaAbs3.^2);
+    S = LambdaAbs1.^2+LambdaAbs2.^2+LambdaAbs3.^2;
     A = 2*options.FrangiAlpha^2; 
     B = 2*options.FrangiBeta^2;  
-	C = 2* (50 ^ 2);
+	C = 2 * (50 ^ 2);
     % Free memory
     
     %Compute Vesselness function
     expRa = (1-exp(-(Ra.^2./A)));
     expRb =    exp(-(Rb.^2./B));
-    expS  = (1-exp(-S.^2./C));
+    expS  = (1-exp(-S./C));
     %keyboard
     % Free memory
     clear S A B C Ra Rb
@@ -142,7 +142,6 @@ for i = 1:length(sigmas),
         Voxel_data(Lambda2 > 0)=0; Voxel_data(Lambda3 > 0)=0;
     end
     
-    %Voxel_data((LambdaAbs1 <= 30) & (LambdaAbs2 <= 30) & (LambdaAbs3 <= 30)) = 0;
     clear LambdaAbs1 LambdaAbs2 LambdaAbs3
     
     % Remove NaN values
@@ -152,14 +151,14 @@ for i = 1:length(sigmas),
     if(i==1)
         Iout=Voxel_data;
         if(nargout>1)
-            whatScale = ones(size(I),class(Iout));
+            whatScale = ones(size(I),class(Iout)) * sigmas(i);
         end
         if(nargout>2)
             Voutx=Vx; Vouty=Vy; Voutz=Vz;
         end
     else
         if(nargout>1)
-            whatScale(Voxel_data>Iout)=i;
+            whatScale(Voxel_data>Iout)=sigmas(i);
         end
         if(nargout>2)
             Voutx(Voxel_data>Iout)=Vx(Voxel_data>Iout);

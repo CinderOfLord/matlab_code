@@ -1,31 +1,32 @@
+% folder = 'D:\matlab_data\wang-shu-rong\';
+% [gray,infolist] = read(folder);
+% slope = infolist(1).RescaleSlope;
+% intercept = infolist(1).RescaleIntercept;
+% ct_ori = double(gray * slope + intercept);
+% ct_top_hat = ct_ori - imopen(ct_ori,strel('cube',8));
+% ct_top_hat = imresize3(ct_top_hat,0.5);
+% ct_ori = imresize3(ct_ori,0.5);
+% save Volume ct_ori ct_top_hat slope intercept infolist;
+
+% load Volume;
+% [bw_aorta,bw_left,bw_right,left_seed,right_seed,fail] = SearchAlongAorta(ct_ori,ct_top_hat);
+% if (fail)
+%     disp('fail');
+%     return;
+% end
+% bw_out = bw_aorta | bw_left | bw_right;
+% ct3wei(bw_out * 400);
+
+ct3wei(bw_right * 400);
+hold on;
+[bw_rca,rca_center_list] = getRca(bw_right,right_seed);
+plot3(rca_center_list(:,2),rca_center_list(:,1),rca_center_list(:,3),'g');
 
 
-%read dicom files and downsample
-folder = 'D:\matlab_data\bai-shan-lin\';
-[Gray,infolist] = read(folder);
-slope = infolist(1).RescaleSlope;
-intercept = infolist(1).RescaleIntercept;
-CT = Gray * slope + intercept;
-CT = imresize3(CT,0.5);
-[x,y,z] = size(CT);
-save Volume CT slope intercept infolist;
-
-%Hessian Filter
-load Volume;
-options.BlackWhite = false;
-options.FrangiScaleRange = [0.3 0.9];
-options.FrangiScaleRatio = 0.2;
-[FValue]=FrangiFilter3D(CT,options);
-save Filter FValue;
-
-%get best 10 point pair
-BW_Label = Label_Sort(FValue > 0.1,CT);
-save BW_Filter BW_Label;
-
-
-%calc the best point pair
-load Volume;
-[BW_Filter,Found] = calc_best_pair(BW_Label,CT);
-save BW_Filter BW_Label BW_Filter;
-
-
+% ct_out = ct_ori;
+% ct_out(bw_out == false) = 0;
+% gray_out = uint16(round(imresize3(ct_out,2) + 1024));
+% [~,~,slicers] = size(gray_out);
+% for i = 1 : slicers - 1
+%     dicomwrite(gray_out(:,:,i),['D:\test\grow\picture',num2str(i),'.dcm'],infolist(i));
+% end
